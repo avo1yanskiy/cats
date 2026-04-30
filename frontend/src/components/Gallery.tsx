@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import './Gallery.css';
+import { galleryPhotos } from '../data/galleryPhotos';
 
-const galleryImages = [
-  { id: '1', src: '/images/IMG_2754.jpeg', alt: 'Катя и Гаврик' },
-  { id: '2', src: '/images/IMG_2776.jpeg', alt: 'Катя и Гаврик' },
-  { id: '3', src: '/images/IMG_2777.jpeg', alt: 'Катя и Гаврик' },
-  { id: '4', src: '/images/IMG_2783.jpeg', alt: 'Катя и Гаврик' },
-];
+const images = galleryPhotos.map((src, index) => ({
+  id: String(index + 1),
+  src,
+  alt: 'Катя и Гаврик'
+}));
 
 function Gallery() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -16,12 +16,12 @@ function Gallery() {
 
   const prevImage = () => {
     if (selectedIndex === null) return;
-    setSelectedIndex(selectedIndex === 0 ? galleryImages.length - 1 : selectedIndex - 1);
+    setSelectedIndex(selectedIndex === 0 ? images.length - 1 : selectedIndex - 1);
   };
 
   const nextImage = () => {
     if (selectedIndex === null) return;
-    setSelectedIndex(selectedIndex === galleryImages.length - 1 ? 0 : selectedIndex + 1);
+    setSelectedIndex(selectedIndex === images.length - 1 ? 0 : selectedIndex + 1);
   };
 
   useEffect(() => {
@@ -38,13 +38,9 @@ function Gallery() {
   return (
     <div className="gallery">
       <div className="gallery-grid">
-        {galleryImages.map((img, index) => (
-          <div key={img.id} className="gallery-item">
-            <img
-              src={img.src}
-              alt={img.alt}
-              onClick={() => openImage(index)}
-            />
+        {images.map((img, index) => (
+          <div key={img.id} className="gallery-item" onClick={() => openImage(index)}>
+            <img src={img.src} alt={img.alt} />
           </div>
         ))}
       </div>
@@ -52,27 +48,11 @@ function Gallery() {
       {selectedIndex !== null && (
         <div className="gallery-modal" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeModal}>
-              ✕
-            </button>
-
-            <button className="modal-prev" onClick={prevImage}>
-              ‹
-            </button>
-
-            <img
-              src={galleryImages[selectedIndex].src}
-              alt={galleryImages[selectedIndex].alt}
-              className="modal-image"
-            />
-
-            <button className="modal-next" onClick={nextImage}>
-              ›
-            </button>
-
-            <div className="modal-counter">
-              {selectedIndex + 1} / {galleryImages.length}
-            </div>
+            <button className="modal-close" onClick={closeModal}>✕</button>
+            <button className="modal-prev" onClick={prevImage}>‹</button>
+            <img src={images[selectedIndex].src} alt={images[selectedIndex].alt} className="modal-image" />
+            <button className="modal-next" onClick={nextImage}>›</button>
+            <div className="modal-counter">{selectedIndex + 1} / {images.length}</div>
           </div>
         </div>
       )}
