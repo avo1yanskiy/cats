@@ -55,3 +55,17 @@
   line-height: 1.7;
   color: var(--color-text-muted);
 }
+
+@media (max-width: 768px) {
+  .story-card {
+    padding: 1.5rem;
+  }
+
+  .story-title {
+    font-size: 1.1rem;
+  }
+
+  .story-text {
+    font-size: 0.9rem;
+  }
+}

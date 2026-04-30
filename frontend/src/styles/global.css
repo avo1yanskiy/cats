@@ -353,4 +353,84 @@ h1, h2, h3 {
   .section-number {
     font-size: 4rem;
   }
+
+  .hero-paw {
+    font-size: 8rem;
+  }
+
+  .intro-text h2 {
+    font-size: 2rem;
+  }
+
+  .intro-text p {
+    font-size: 1.1rem;
+  }
+
+  .stat-number {
+    font-size: 3rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .story-both-section {
+    padding: 1.5rem;
+  }
+
+  .story-both-section h3,
+  .story-cat-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .footer {
+    padding: 3rem 1rem;
+    font-size: 0.75rem;
+  }
+}
+.gallery-page-section {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 8rem 2rem 4rem;
+}
+
+.gallery-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4rem;
+}
+
+.gallery-page-title {
+  font-size: clamp(3rem, 8vw, 6rem);
+  color: var(--color-orange);
+  font-weight: 700;
+}
+
+.gallery-page-back {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.gallery-page-back:hover {
+  color: var(--color-orange);
+}
+
+@media (max-width: 768px) {
+  .gallery-page-section {
+    padding: 6rem 1rem 2rem;
+  }
+
+  .gallery-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .gallery-page-title {
+    font-size: 3rem;
+  }
 }

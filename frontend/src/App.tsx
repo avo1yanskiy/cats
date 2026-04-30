@@ -1,9 +1,6 @@
 import Navbar from './components/Navbar';
 import CatCard from './components/CatCard';
-import Gallery from './components/Gallery';
-import StoryCard from './components/StoryCard';
 import { cats } from './data/cats';
-import { stories } from './data/stories';
 
 function App() {
   return (
@@ -58,48 +55,6 @@ function App() {
             {cats.map((cat) => (
               <CatCard key={cat.id} cat={cat} />
             ))}
-          </div>
-</section>
-
-        <section className="gallery-section" id="gallery">
-          <div className="section-header">
-            <h2 className="section-title">Галерея</h2>
-            <span className="section-number">03</span>
-          </div>
-          <Gallery />
-        </section>
-
-        <section className="stories-section" id="stories">
-          <div className="section-header">
-            <h2 className="section-title">Истории из жизни</h2>
-            <span className="section-number">03</span>
-          </div>
-
-          <div className="story-both-section">
-            <h3>Как мы нашли друг друга</h3>
-            <div className="stories-list">
-              {stories.filter((s) => s.catId === 'both').map((story) => (
-                <StoryCard key={story.id} story={story} />
-              ))}
-            </div>
-          </div>
-
-          <div className="story-cat-section">
-            <h3>Приключения Кати</h3>
-            <div className="stories-list">
-              {stories.filter((s) => s.catId === 'katya').map((story) => (
-                <StoryCard key={story.id} story={story} />
-              ))}
-            </div>
-          </div>
-
-          <div className="story-cat-section">
-            <h3>Приключения Гаврика</h3>
-            <div className="stories-list">
-              {stories.filter((s) => s.catId === 'gavrik').map((story) => (
-                <StoryCard key={story.id} story={story} />
-              ))}
-            </div>
           </div>
         </section>
       </main>

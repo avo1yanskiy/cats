@@ -65,3 +65,27 @@
   line-height: 1.6;
   color: var(--color-text);
 }
+
+@media (max-width: 768px) {
+  .cat-info {
+    transform: translateY(0);
+    padding: 1.5rem;
+  }
+
+  .cat-name {
+    font-size: 1.75rem;
+  }
+
+  .cat-age {
+    font-size: 0.75rem;
+  }
+
+  .cat-breed, .cat-color {
+    font-size: 0.8rem;
+  }
+
+  .cat-description {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+}
