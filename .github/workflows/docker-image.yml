@@ -3,12 +3,9 @@ name: Build and Deploy Cat Site
 on:
   push:
     branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
 
 env:
   DOCKER_IMAGE_NAME: cat-site
-  DOCKER_IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   build-and-push:
@@ -35,9 +32,7 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_IMAGE_TAG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
 
   deploy:
     needs: build-and-push
@@ -47,6 +42,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      
+      - name: Debug SSH key (check if exists)
+        run: |
+          if [ -n "${{ secrets.SERVER_SSH_KEY }}" ]; then
+            echo "SSH key exists, length: ${#SERVER_SSH_KEY}"
+            # Проверяем начало ключа
+            echo "Key starts with: ${SERVER_SSH_KEY:0:20}..."
+          else
+            echo "ERROR: SSH key is empty!"
+            exit 1
+          fi
+        env:
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
       
       - name: Create docker-compose file for server
         run: |
@@ -60,15 +68,20 @@ jobs:
               ports:
                 - "80:80"
               restart: unless-stopped
-              # Добавьте healthcheck для надежности
-              healthcheck:
-                test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
-                interval: 30s
-                timeout: 10s
-                retries: 3
           EOF
       
+      - name: Test SSH connection first
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "SSH connection successful!"
+            ls -la /app/
+      
       - name: Copy docker-compose to server
+        if: success()
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -76,23 +89,20 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "docker-compose.prod.yml"
           target: "/app/cat-site/"
-          strip_components: 0
+          overwrite: true
       
       - name: Deploy on server
+        if: success()
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /opt/cat-site
+            cd /app/cat-site
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-            docker-compose -f docker-compose.prod.yml down
+            docker-compose -f docker-compose.prod.yml down || true
             docker-compose -f docker-compose.prod.yml up -d
-            
-            # Очистка старых образов
             docker image prune -f
-            
-            # Проверка статуса
-            echo "Deployment completed!"
+            echo "✅ Deployment completed!"
             docker ps | grep cat-site
