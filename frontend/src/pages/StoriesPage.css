@@ -1,0 +1,71 @@
+.stories-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+  padding-top: 6rem;
+}
+
+.stories-page-title {
+  font-size: clamp(3rem, 8vw, 6rem);
+  color: var(--color-orange);
+  font-weight: 700;
+}
+
+.stories-page-back {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.stories-page-back:hover {
+  color: var(--color-orange);
+}
+
+.story-year-section {
+  margin-bottom: 4rem;
+}
+
+.story-year-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: var(--color-orange);
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-surface-light);
+  position: relative;
+}
+
+.story-year-title::before {
+  content: '🐾';
+  position: absolute;
+  left: -8rem;
+  top: -2rem;
+  font-size: 6rem;
+  opacity: 0.03;
+  color: var(--color-orange);
+  transform: rotate(-10deg);
+}
+
+.stories-empty {
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 3rem;
+  background: var(--color-surface);
+  border-radius: 16px;
+}
+
+@media (max-width: 768px) {
+  .stories-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-top: 5rem;
+  }
+
+  .stories-page-title {
+    font-size: 3rem;
+  }
+}

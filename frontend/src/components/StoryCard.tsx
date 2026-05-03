@@ -11,16 +11,26 @@ function StoryCard({ story }: StoryCardProps) {
 
   return (
     <div className="story-card">
-      {story.image && (
-        <img src={story.image} alt={story.title} className="story-image" />
-      )}
       <div className="story-content">
         <div className="story-header">
           <h3 className="story-title">{story.title}</h3>
           {cat && <span className="story-cat">{cat.name}</span>}
         </div>
         <time className="story-date">{story.date}</time>
-        <p className="story-text">{story.content}</p>
+        <p className="story-text">{story.text}</p>
+        {story.images && story.images.length > 0 && (
+          <div className="story-images">
+            {story.images.map((src, index) => (
+              <img 
+                key={src} 
+                src={src} 
+                alt={`Фото ${index + 1}`} 
+                className="story-image-thumb" 
+                loading="lazy"
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

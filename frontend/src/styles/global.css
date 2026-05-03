@@ -394,11 +394,36 @@ h1, h2, h3 {
   padding: 8rem 2rem 4rem;
 }
 
+.gallery-page-section {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 8rem 2rem 4rem;
+}
+
 .gallery-page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4rem;
+  padding-top: 6rem;
+  position: relative;
+}
+
+.gallery-page-title {
+  font-size: clamp(3rem, 8vw, 6rem);
+  color: var(--color-orange);
+  font-weight: 700;
+}
+
+.gallery-page-header::before {
+  content: '🐾';
+  position: absolute;
+  left: -8rem;
+  top: 4rem;
+  font-size: 6rem;
+  opacity: 0.03;
+  color: var(--color-orange);
+  transform: rotate(-10deg);
 }
 
 .gallery-page-title {

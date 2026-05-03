@@ -23,6 +23,18 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
+  position: relative;
+}
+
+.story-header::before {
+  content: '🐾';
+  position: absolute;
+  left: -8rem;
+  top: -1rem;
+  font-size: 6rem;
+  opacity: 0.03;
+  color: var(--color-orange);
+  transform: rotate(-10deg);
 }
 
 .story-title {
@@ -54,6 +66,26 @@
   font-size: 1rem;
   line-height: 1.7;
   color: var(--color-text-muted);
+}
+
+.story-images {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.story-image-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.story-image-thumb:hover {
+  transform: scale(1.1);
 }
 
 @media (max-width: 768px) {
