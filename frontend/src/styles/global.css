@@ -246,8 +246,8 @@ h1, h2, h3 {
   position: absolute;
   right: -8rem;
   top: -2rem;
-  font-size: 6rem;
-  opacity: 0.03;
+  font-size: 8rem;
+  opacity: 0.1;
   color: var(--color-orange);
   transform: rotate(-10deg);
 }
@@ -420,8 +420,8 @@ h1, h2, h3 {
   position: absolute;
   left: -8rem;
   top: 4rem;
-  font-size: 6rem;
-  opacity: 0.03;
+  font-size: 8rem;
+  opacity: 0.1;
   color: var(--color-orange);
   transform: rotate(-10deg);
 }
