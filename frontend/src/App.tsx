@@ -24,32 +24,9 @@ function App() {
           </div>
         </section>
 
-        <section className="intro-section">
-          <div className="intro-grid">
-            <div className="intro-text">
-              <h2>О нас</h2>
-              <p>
-                Мы — пара котов, которые нашли друг друга в котокафе. 
-                Теперь живём вместе и делим одну подушку на двоих.
-              </p>
-            </div>
-            <div className="intro-stats">
-              <div className="stat">
-                <span className="stat-number">3</span>
-                <span className="stat-label">года вместе</span>
-              </div>
-              <div className="stat">
-                <span className="stat-number">∞</span>
-                <span className="stat-label">объятий в день</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <section className="cats-section">
           <div className="section-header">
             <h2 className="section-title">Котики</h2>
-            <span className="section-number">01</span>
           </div>
           <div className="cats-grid">
             {cats.map((cat) => (

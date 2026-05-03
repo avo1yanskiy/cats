@@ -1,71 +1,178 @@
-.stories-page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 3rem;
-  padding-top: 6rem;
+.stories-page {
+  min-height: 100vh;
+  background-color: var(--color-bg);
 }
 
-.stories-page-title {
-  font-size: clamp(3rem, 8vw, 6rem);
-  color: var(--color-orange);
-  font-weight: 700;
-}
-
-.stories-page-back {
-  color: var(--color-text-muted);
-  text-decoration: none;
-  font-size: 1rem;
-  transition: color 0.3s ease;
-}
-
-.stories-page-back:hover {
-  color: var(--color-orange);
-}
-
-.story-year-section {
-  margin-bottom: 4rem;
-}
-
-.story-year-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  color: var(--color-orange);
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid var(--color-surface-light);
+.stories-hero {
   position: relative;
-}
-
-.story-year-title::before {
-  content: '🐾';
-  position: absolute;
-  left: -8rem;
-  top: -2rem;
-  font-size: 8rem;
-  opacity: 0.1;
-  color: var(--color-orange);
-  transform: rotate(-10deg);
-}
-
-.stories-empty {
-  color: var(--color-text-muted);
-  font-size: 1.1rem;
+  padding: 6rem 2rem 4rem;
   text-align: center;
-  padding: 3rem;
+  background: linear-gradient(180deg, rgba(255, 107, 53, 0.05) 0%, transparent 100%);
+  overflow: hidden;
+}
+
+.stories-hero-paw {
+  position: absolute;
+  font-size: 12rem;
+  opacity: 0.06;
+  color: var(--color-orange);
+  pointer-events: none;
+}
+
+.stories-hero-paw.left {
+  left: -2rem;
+  top: 2rem;
+  transform: rotate(-15deg);
+}
+
+.stories-hero-paw.right {
+  right: -2rem;
+  bottom: 2rem;
+  transform: rotate(15deg) scaleX(-1);
+}
+
+.stories-hero-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.stories-hero-subtitle {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  margin: 0 0 1.5rem;
+}
+
+.stories-back {
+  display: inline-block;
+  color: var(--color-orange);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: opacity 0.3s;
+}
+
+.stories-back:hover {
+  opacity: 0.7;
+}
+
+.stories-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 2rem 0;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--color-surface);
+  border-radius: 50px;
   background: var(--color-surface);
-  border-radius: 16px;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+}
+
+.tab-button.active {
+  background: var(--color-orange);
+  border-color: var(--color-orange);
+  color: white;
+}
+
+.tab-count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tab-button:not(.active) .tab-count {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.timeline {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 3rem 2rem 4rem;
+}
+
+.timeline-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--color-text-muted);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.timeline-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-orange);
+  border: 3px solid var(--color-bg);
+  box-shadow: 0 0 0 2px var(--color-orange);
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-line {
+  width: 2px;
+  flex-grow: 1;
+  background: linear-gradient(180deg, var(--color-orange) 0%, var(--color-surface) 100%);
+  margin-top: 0.5rem;
+}
+
+.timeline-content {
+  flex: 1;
+  min-width: 0;
 }
 
 @media (max-width: 768px) {
-  .stories-page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    padding-top: 5rem;
+  .stories-hero {
+    padding: 4rem 1rem 3rem;
   }
 
-  .stories-page-title {
-    font-size: 3rem;
+  .stories-hero-paw {
+    font-size: 8rem;
+  }
+
+  .timeline {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .timeline-item {
+    gap: 1rem;
   }
 }
