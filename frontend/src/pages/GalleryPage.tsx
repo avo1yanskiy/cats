@@ -49,7 +49,6 @@ function GalleryPage() {
           <div className="gallery-empty">
             <span className="empty-icon">📷</span>
             <p>В {activeYear} году фотографий пока нет</p>
-            <p className="empty-hint">Добавьте фото в папку assets/images</p>
           </div>
         ) : (
           <div className="masonry-grid">
