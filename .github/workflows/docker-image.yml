@@ -2,7 +2,7 @@ name: Build and Deploy Cat Site
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master", "dev"]
 
 env:
   DOCKER_IMAGE_NAME: cat-site
@@ -10,20 +10,20 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -37,17 +37,16 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Debug SSH key (check if exists)
         run: |
           if [ -n "${{ secrets.SERVER_SSH_KEY }}" ]; then
             echo "SSH key exists, length: ${#SERVER_SSH_KEY}"
-            # Проверяем начало ключа
             echo "Key starts with: ${SERVER_SSH_KEY:0:20}..."
           else
             echo "ERROR: SSH key is empty!"
@@ -55,21 +54,49 @@ jobs:
           fi
         env:
           SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
-      
+
       - name: Create docker-compose file for server
         run: |
           cat > docker-compose.prod.yml << EOF
           version: '3.8'
-          
+
           services:
+            nginx:
+              image: nginx:alpine
+              container_name: cat-nginx
+              ports:
+                - "80:80"
+                - "443:443"
+              volumes:
+                - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+                - certbot-ssl:/etc/letsencrypt:ro
+                - certbot-challenge:/var/www/certbot:ro
+              restart: unless-stopped
+              depends_on:
+                - cat-site
+
             cat-site:
               image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
               container_name: cat-site
-              ports:
-                - "80:80"
               restart: unless-stopped
+
+            certbot:
+              image: certbot/certbot
+              container_name: cat-certbot
+              volumes:
+                - certbot-ssl:/etc/letsencrypt
+                - certbot-challenge:/var/www/certbot
+              command: >
+                certonly --webroot --webroot-path=/var/www/certbot
+                --email avo1yanskiy@mail.ru --agree-tos --no-eff-email --non-interactive
+                -d purr-tales.ru -d dev.purr-tales.ru
+              restart: on-failure
+
+          volumes:
+            certbot-ssl:
+            certbot-challenge:
           EOF
-      
+
       - name: Test SSH connection first
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -79,8 +106,8 @@ jobs:
           script: |
             echo "SSH connection successful!"
             ls -la /opt/
-      
-      - name: Copy docker-compose to server
+
+      - name: Copy files to server
         if: success()
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -90,7 +117,7 @@ jobs:
           source: "docker-compose.prod.yml"
           target: "/opt/cat-site/"
           overwrite: true
-      
+
       - name: Deploy on server
         if: success()
         uses: appleboy/ssh-action@v1.0.3
@@ -100,9 +127,10 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /opt/cat-site/
-            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-            docker-compose -f docker-compose.prod.yml down || true
-            docker-compose -f docker-compose.prod.yml up -d
-            docker image prune -f
+            # Создаем volumes если их нет
+            docker volume create certbot-ssl 2>/dev/null || true
+            docker volume create certbot-challenge 2>/dev/null || true
+            # Запускаем сервисы
+            docker compose -f docker-compose.prod.yml up -d --build
             echo "✅ Deployment completed!"
-            docker ps | grep cat-site
+            docker ps | grep cat-

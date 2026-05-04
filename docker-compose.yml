@@ -1,8 +1,39 @@
 services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot-ssl:/etc/letsencrypt:ro
+      - certbot-challenge:/var/www/certbot:ro
+    depends_on:
+      - cat-site
+    restart: unless-stopped
+
   cat-site:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
     restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot-ssl:/etc/letsencrypt
+      - certbot-challenge:/var/www/certbot
+    command: >
+      certonly --webroot
+      --webroot-path=/var/www/certbot
+      --email avo1yanskiy@mail.ru
+      --agree-tos
+      --no-eff-email
+      --non-interactive
+      -d purr-tales.ru
+      -d dev.purr-tales.ru
+    restart: on-failure
+
+volumes:
+  certbot-ssl:
+  certbot-challenge:
