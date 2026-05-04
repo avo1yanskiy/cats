@@ -6,25 +6,26 @@ from pathlib import Path
 import httpx
 from config import GITHUB_REPO, GITHUB_TOKEN, IMAGES_DIR, STORIES_FILE
 
-HEADERS = {
-    "Authorization": f"token {GITHUB_TOKEN}",
-    "Accept": "application/vnd.github.v3+json",
-    "Content-Type": "application/json",
-}
-
 API_URL = f"https://api.github.com/repos/{GITHUB_REPO}"
+
+def get_headers():
+    return {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+    }
 
 
 def get_file_content(path: str) -> str | None:
     """Get file content from GitHub"""
     url = f"{API_URL}/contents/{path}"
     try:
-        response = httpx.get(url, headers=HEADERS, timeout=10)
+        response = httpx.get(url, headers=get_headers(), timeout=10)
         if response.status_code == 200:
             data = response.json()
             return base64.b64decode(data["content"]).decode("utf-8")
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Error getting file: {e}")
     return None
 
 
@@ -35,10 +36,11 @@ def update_file(path: str, content: str, message: str) -> bool:
     # Get current SHA if file exists
     sha = None
     try:
-        response = httpx.get(url, headers=HEADERS, timeout=10)
+        response = httpx.get(url, headers=get_headers(), timeout=10)
         if response.status_code == 200:
             sha = response.json()["sha"]
-    except Exception:
+    except Exception as e:
+        print(f"Error getting SHA: {e}")
         pass
     
     # Encode content
@@ -52,7 +54,8 @@ def update_file(path: str, content: str, message: str) -> bool:
         data["sha"] = sha
     
     try:
-        response = httpx.put(url, headers=HEADERS, json=data, timeout=10)
+        response = httpx.put(url, headers=get_headers(), json=data, timeout=10)
+        print(f"Save stories response: {response.status_code} - {response.text}")
         return response.status_code in (200, 201)
     except Exception as e:
         print(f"Error updating file: {e}")
@@ -92,9 +95,9 @@ def upload_image(image_data: bytes, filename: str) -> str | None:
     }
     
     try:
-        response = httpx.put(url, headers=HEADERS, json=data, timeout=30)
+        response = httpx.put(url, headers=get_headers(), json=data, timeout=30)
+        print(f"Upload image response: {response.status_code} - {response.text}")
         if response.status_code in (200, 201):
-            # Return raw URL for embedding
             return response.json()["content"]["download_url"]
     except Exception as e:
         print(f"Error uploading image: {e}")
