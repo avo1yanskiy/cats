@@ -58,20 +58,35 @@ jobs:
       - name: Create nginx.conf file for server
         run: |
           cat > nginx.conf << EOF
-          # HTTP — для сайта и ACME challenge
+          # HTTP — для ACME challenge и редиректа
           server {
-               listen 80;
+              listen 80;
               server_name purr-tales.ru dev.purr-tales.ru;
-
-              root /usr/share/nginx/html;
-              index index.html;
-
-              # Let's Encrypt ACME challenge — важно!
+              
               location /.well-known/acme-challenge/ {
                   root /var/www/certbot;
               }
-
-              # Сайт
+              
+              location / {
+                  return 301 https://$host$request_uri;
+              }
+          }
+          
+          # HTTPS — основной сервер
+          server {
+              listen 443 ssl;
+              http2;
+              server_name purr-tales.ru dev.purr-tales.ru;
+              
+              ssl_certificate /etc/letsencrypt/live/purr-tales.ru/fullchain.pem;
+              ssl_certificate_key /etc/letsencrypt/live/purr-tales.ru/privkey.pem;
+              
+              ssl_protocols TLSv1.2 TLSv1.3;
+              ssl_prefer_server_ciphers on;
+              
+              root /usr/share/nginx/html;
+              index index.html;
+              
               location / {
                   try_files $uri $uri/ /index.html;
               }
