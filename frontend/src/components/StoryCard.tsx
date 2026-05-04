@@ -1,15 +1,7 @@
 import { useState } from 'react';
+import type { Story } from '../data/stories';
 import { cats } from '../data/cats';
 import './StoryCard.css';
-
-interface Story {
-  id: string;
-  catId: 'katya' | 'gavrik' | 'both';
-  title: string;
-  text: string;
-  date: string;
-  images?: string[];
-}
 
 interface StoryCardProps {
   story: Story;
