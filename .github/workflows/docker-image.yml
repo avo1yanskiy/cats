@@ -55,6 +55,29 @@ jobs:
         env:
           SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
 
+      - name: Create nginx.conf file for server
+        run: |
+          cat > nginx.conf << EOF
+          # HTTP — для сайта и ACME challenge
+          server {
+               listen 80;
+              server_name purr-tales.ru dev.purr-tales.ru;
+
+              root /usr/share/nginx/html;
+              index index.html;
+
+              # Let's Encrypt ACME challenge — важно!
+              location /.well-known/acme-challenge/ {
+                  root /var/www/certbot;
+              }
+
+              # Сайт
+              location / {
+                  try_files $uri $uri/ /index.html;
+              }
+          }
+          EOF
+
       - name: Create docker-compose file for server
         run: |
           cat > docker-compose.prod.yml << EOF
