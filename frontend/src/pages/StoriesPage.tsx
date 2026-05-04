@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import StoryCard from '../components/StoryCard';
-import { stories } from '../data/stories.json';
+import stories from '../data/stories.json';
 import type { Story } from '../components/StoryCard';
 
 type TabType = 'katya' | 'gavrik' | 'both';
