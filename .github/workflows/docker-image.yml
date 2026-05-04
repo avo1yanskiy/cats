@@ -10,20 +10,20 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
+      
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
+      
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -38,33 +38,21 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Debug SSH key (check if exists)
-        run: |
-          if [ -n "${{ secrets.SERVER_SSH_KEY }}" ]; then
-            echo "SSH key exists, length: ${#SERVER_SSH_KEY}"
-            echo "Key starts with: ${SERVER_SSH_KEY:0:20}..."
-          else
-            echo "ERROR: SSH key is empty!"
-            exit 1
-          fi
-        env:
-          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
-
+      
       - name: Create nginx.conf file for server
         run: |
-          cat > nginx.conf << EOF
-          # HTTP — для ACME challenge и редиректа
+          cat > nginx.conf << 'EOF'
+          # HTTP
           server {
               listen 80;
-              server_name purr-tales.ru dev.purr-tales.ru;
+              server_name purr-tales.ru;
               
               location /.well-known/acme-challenge/ {
-                  root /var/www/certbot;
+                  proxy_pass http://cat-site:3000;
               }
               
               location / {
@@ -72,10 +60,10 @@ jobs:
               }
           }
           
-          # HTTPS — основной сервер
+          # HTTPS
           server {
               listen 443 ssl http2;
-              server_name purr-tales.ru dev.purr-tales.ru;
+              server_name purr-tales.ru;
               
               ssl_certificate /etc/letsencrypt/live/purr-tales.ru/fullchain.pem;
               ssl_certificate_key /etc/letsencrypt/live/purr-tales.ru/privkey.pem;
@@ -83,11 +71,12 @@ jobs:
               ssl_protocols TLSv1.2 TLSv1.3;
               ssl_prefer_server_ciphers on;
               
-              root /usr/share/nginx/html;
-              index index.html;
-              
               location / {
-                  try_files $uri $uri/ /index.html;
+                  proxy_pass http://cat-site:3000;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
               }
           }
           EOF
@@ -96,7 +85,7 @@ jobs:
         run: |
           cat > docker-compose.prod.yml << EOF
           version: '3.8'
-
+          
           services:
             nginx:
               image: nginx:alpine
@@ -107,41 +96,36 @@ jobs:
               volumes:
                 - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
                 - certbot-ssl:/etc/letsencrypt:ro
-                - certbot-challenge:/var/www/certbot:ro
               restart: unless-stopped
-              depends_on:
-                - cat-site
-
+            
             cat-site:
               image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
               container_name: cat-site
+              expose:
+                - "3000"
               restart: unless-stopped
-
+            
             certbot:
               image: certbot/certbot
               container_name: cat-certbot
               volumes:
                 - certbot-ssl:/etc/letsencrypt
-                - certbot-challenge:/var/www/certbot
               command: >
-                certonly --webroot --webroot-path=/var/www/certbot
-                --email avo1yanskiy@mail.ru --agree-tos --no-eff-email --non-interactive --expand
-                -d purr-tales.ru -d dev.purr-tales.ru
+                renew --webroot --webroot-path=/var/www/certbot --non-interactive
               restart: on-failure
-
+          
           volumes:
             certbot-ssl:
-            certbot-challenge:
           EOF
 
-      - name: Test SSH connection first
+      - name: Test SSH connection
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            echo "SSH connection successful!"
+            echo "SSH connected!"
             ls -la /opt/
 
       - name: Copy files to server
@@ -164,16 +148,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /opt/cat-site/
-            # Создаем volumes если их нет
             docker volume create certbot-ssl 2>/dev/null || true
-            docker volume create certbot-challenge 2>/dev/null || true
-            # Останавливаем и запускаем заново чтобы подхватить новый nginx.conf
-            docker compose -f docker-compose.prod.yml down nginx
+            docker compose -f docker-compose.prod.yml down nginx || true
             docker compose -f docker-compose.prod.yml up -d --build
-            # Ждем и проверяем
             sleep 10
             docker logs cat-nginx --tail 5
-            # Запускаем сервисы
-            docker compose -f docker-compose.prod.yml up -d --build
-            echo "✅ Deployment completed!"
-            docker ps | grep cat-
+            echo "✅ Done!"

@@ -6,10 +6,14 @@ COPY frontend/ ./
 RUN npm install
 RUN npm run build
 
-FROM nginx:alpine
+# Запускаем простой HTTP сервер для dev
+FROM node:20-alpine
 
-COPY --from=builder /app/frontend/dist /usr/share/nginx/html
+WORKDIR /app/frontend
+COPY --from=builder /app/frontend/dist ./dist
+COPY --from=builder /app/frontend/node_modules ./node_modules
+COPY frontend/package.json ./
 
-EXPOSE 80
+EXPOSE 3000
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npx", "serve", "-s", "dist", "-l", "3000"]
