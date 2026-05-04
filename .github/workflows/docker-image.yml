@@ -96,6 +96,7 @@ jobs:
               volumes:
                 - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
                 - certbot-ssl:/etc/letsencrypt:ro
+                - certbot-challenge:/var/www/certbot:ro
               restart: unless-stopped
               depends_on:
                 - cat-site
@@ -116,6 +117,7 @@ jobs:
               container_name: cat-certbot
               volumes:
                 - certbot-ssl:/etc/letsencrypt
+                - certbot-challenge:/var/www/certbot
               command: >
                 renew --webroot --webroot-path=/var/www/certbot --non-interactive
               restart: on-failure
@@ -128,6 +130,7 @@ jobs:
           
           volumes:
             certbot-ssl:
+            certbot-challenge:
           EOF
 
       - name: Test SSH connection
