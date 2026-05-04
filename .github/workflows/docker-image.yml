@@ -6,11 +6,10 @@ on:
 
 env:
   DOCKER_IMAGE_NAME: cat-site
-  BOT_IMAGE_NAME: cat-bot
 
 jobs:
   build-and-push:
-    runs-on ubuntu-latest
+    runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
@@ -25,7 +24,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       
-      - name: Build and push cat-site image
+      - name: Build and push cat-site Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -34,16 +33,16 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
             ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
-      
-      - name: Build and push bot image
+
+      - name: Build and push bot Docker image
         uses: docker/build-push-action@v5
         with:
           context: ./bot
           file: ./bot/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.BOT_IMAGE_NAME }}:latest
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.BOT_IMAGE_NAME }}:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/cat-bot:latest
+            ${{ secrets.DOCKER_USERNAME }}/cat-bot:${{ github.sha }}
 
   deploy:
     needs: build-and-push
@@ -136,7 +135,7 @@ jobs:
                 - cat-network
             
             bot:
-              image: ${{ secrets.DOCKER_USERNAME }}/${{ env.BOT_IMAGE_NAME }}:latest
+              image: ${{ secrets.DOCKER_USERNAME }}/cat-bot:latest
               container_name: cat-bot
               restart: always
               environment:
@@ -186,7 +185,7 @@ jobs:
           script: |
             cd /opt/cat-site/
             docker volume create certbot-ssl 2>/dev/null || true
-            docker compose -f docker-compose.prod.yml down nginx 2>/dev/null || true
+            docker compose -f docker-compose.prod.yml down nginx || true
             docker compose -f docker-compose.prod.yml up -d --build
             sleep 10
             docker logs cat-nginx --tail 5
