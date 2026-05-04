@@ -111,7 +111,7 @@ jobs:
                 - certbot-challenge:/var/www/certbot
               command: >
                 certonly --webroot --webroot-path=/var/www/certbot
-                --email avo1yanskiy@mail.ru --agree-tos --no-eff-email --non-interactive
+                --email avo1yanskiy@mail.ru --agree-tos --no-eff-email --non-interactive --expand
                 -d purr-tales.ru -d dev.purr-tales.ru
               restart: on-failure
 

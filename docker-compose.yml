@@ -30,7 +30,9 @@ services:
       --agree-tos
       --no-eff-email
       --non-interactive
+      --expand
       -d purr-tales.ru
+      -d dev.purr-tales.ru
     restart: on-failure
 
 volumes:
