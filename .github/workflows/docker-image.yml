@@ -52,7 +52,7 @@ jobs:
               server_name purr-tales.ru;
               
               location /.well-known/acme-challenge/ {
-                  proxy_pass http://cat-site:3000;
+                  proxy_pass http://cat-site:80;
               }
               
               location / {
@@ -72,7 +72,7 @@ jobs:
               ssl_prefer_server_ciphers on;
               
               location / {
-                  proxy_pass http://cat-site:3000;
+                  proxy_pass http://cat-site:80;
                   proxy_set_header Host $host;
                   proxy_set_header X-Real-IP $remote_addr;
                   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -106,7 +106,7 @@ jobs:
               image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
               container_name: cat-site
               expose:
-                - "3000"
+                - "80"
               restart: unless-stopped
               networks:
                 - cat-network
