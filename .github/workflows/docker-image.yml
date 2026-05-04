@@ -97,6 +97,10 @@ jobs:
                 - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
                 - certbot-ssl:/etc/letsencrypt:ro
               restart: unless-stopped
+              depends_on:
+                - cat-site
+              networks:
+                - cat-network
             
             cat-site:
               image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
@@ -104,6 +108,8 @@ jobs:
               expose:
                 - "3000"
               restart: unless-stopped
+              networks:
+                - cat-network
             
             certbot:
               image: certbot/certbot
@@ -113,6 +119,12 @@ jobs:
               command: >
                 renew --webroot --webroot-path=/var/www/certbot --non-interactive
               restart: on-failure
+              networks:
+                - cat-network
+          
+          networks:
+            cat-network:
+              driver: bridge
           
           volumes:
             certbot-ssl:

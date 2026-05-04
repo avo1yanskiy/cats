@@ -8,6 +8,10 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - certbot-ssl:/etc/letsencrypt:ro
     restart: unless-stopped
+    depends_on:
+      - cat-site
+    networks:
+      - cat-network
 
   cat-site:
     build:
@@ -16,6 +20,8 @@ services:
     expose:
       - "3000"
     restart: unless-stopped
+    networks:
+      - cat-network
 
   certbot:
     image: certbot/certbot
@@ -23,6 +29,12 @@ services:
       - certbot-ssl:/etc/letsencrypt
     command: renew --webroot --webroot-path=/var/www/certbot --non-interactive
     restart: on-failure
+    networks:
+      - cat-network
+
+networks:
+  cat-network:
+    driver: bridge
 
 volumes:
   certbot-ssl:
