@@ -34,6 +34,18 @@ services:
     networks:
       - cat-network
 
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TOKEN_BOT=${TOKEN_BOT}
+      - REPO_BOT=${REPO_BOT}
+    networks:
+      - cat-network
+
 networks:
   cat-network:
     driver: bridge
