@@ -333,7 +333,7 @@ async def handle_message(message: Message, state: FSMContext):
 async def main():
     """Start bot"""
     print("🐱 Bot starting...")
-    dp.run polling(bot)
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
