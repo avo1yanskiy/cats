@@ -58,22 +58,21 @@ jobs:
       - name: Create nginx.conf file for server
         run: |
           cat > nginx.conf << EOF
-          # HTTP и HTTPS на одном сервере
+          # HTTP — для ACME challenge и редиректа
           server {
               listen 80;
               server_name purr-tales.ru dev.purr-tales.ru;
               
-              # Let's Encrypt ACME challenge
               location /.well-known/acme-challenge/ {
                   root /var/www/certbot;
               }
               
               location / {
-                  root /usr/share/nginx/html;
-                  try_files $uri $uri/ /index.html;
+                  return 301 https://$host$request_uri;
               }
           }
           
+          # HTTPS — основной сервер
           server {
               listen 443 ssl http2;
               server_name purr-tales.ru dev.purr-tales.ru;
