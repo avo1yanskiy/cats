@@ -167,6 +167,12 @@ jobs:
             # Создаем volumes если их нет
             docker volume create certbot-ssl 2>/dev/null || true
             docker volume create certbot-challenge 2>/dev/null || true
+            # Останавливаем и запускаем заново чтобы подхватить новый nginx.conf
+            docker compose -f docker-compose.prod.yml down nginx
+            docker compose -f docker-compose.prod.yml up -d --build
+            # Ждем и проверяем
+            sleep 10
+            docker logs cat-nginx --tail 5
             # Запускаем сервисы
             docker compose -f docker-compose.prod.yml up -d --build
             echo "✅ Deployment completed!"
