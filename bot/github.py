@@ -69,8 +69,9 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
     
     print(f"Current content length: {len(current)}")
     
+    # Create properly formatted JSON for TS
     story_json = json.dumps({
-        "id": f"story-{uuid.uuid4().hex[:8]}",
+        "id": "story-" + uuid.uuid4().hex[:8],
         "title": title,
         "date": date or "2024-01-01",
         "content": content,
@@ -80,13 +81,15 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
     print(f"New story JSON: {story_json}")
     
     # Replace ];  with ,{story_json}\n];
+    # Remove };  and add with proper formatting
     current = current.rstrip()
     if current.endswith("];"):
-        current = current[:-2] + ",\n" + story_json + "\n];"
+        # Insert comma + new story + ];
+        new_content = current[:-2] + ",\n  " + story_json.replace("\n", "\n  ") + "\n];"
     
-    print(f"New content preview: {current[-300:]}")
+    print(f"New content end: {new_content[-200:]}")
     
-    return update_file(STORIES_FILE, current, f"Add story: {title}")
+    return update_file(STORIES_FILE, new_content, f"Add story: {title}")
 
 
 def load_stories() -> list:
