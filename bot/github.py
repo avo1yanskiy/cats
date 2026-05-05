@@ -59,13 +59,15 @@ def update_file(path: str, content: str, message: str) -> bool:
 
 
 def add_story(title: str, content: str, cat_id: str, date: str = None, image: str = None) -> bool:
-    """Add new story - simple approach: replace ];  with ,\n{json}\n]; """
+    """Add new story - replace ];  with ,\n{json}\n]; """
     print(f"=== ADD STORY: {title} ===")
     
     current = get_file_content(STORIES_FILE)
     if not current:
         print("No file found")
         return False
+    
+    print(f"Current content length: {len(current)}")
     
     story_json = json.dumps({
         "id": f"story-{uuid.uuid4().hex[:8]}",
@@ -75,14 +77,14 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
         "catId": cat_id,
     }, ensure_ascii=False, indent=2)
     
+    print(f"New story JSON: {story_json}")
+    
     # Replace ];  with ,{story_json}\n];
-    # First remove trailing comma if exists, then add new
     current = current.rstrip()
     if current.endswith("];"):
-        # Add comma after last object, then new story
         current = current[:-2] + ",\n" + story_json + "\n];"
     
-    print(f"Content preview: {current[-300:]}")
+    print(f"New content preview: {current[-300:]}")
     
     return update_file(STORIES_FILE, current, f"Add story: {title}")
 
