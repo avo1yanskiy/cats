@@ -2,6 +2,7 @@ import base64
 import json
 import uuid
 from pathlib import Path
+import re
 
 import httpx
 from config import GITHUB_REPO, GITHUB_TOKEN, IMAGES_DIR, STORIES_FILE
@@ -33,7 +34,6 @@ def update_file(path: str, content: str, message: str) -> bool:
     """Update or create file in GitHub"""
     url = f"{API_URL}/contents/{path}"
     
-    # Get current SHA if file exists
     sha = None
     try:
         response = httpx.get(url, headers=get_headers(), timeout=10)
@@ -41,9 +41,7 @@ def update_file(path: str, content: str, message: str) -> bool:
             sha = response.json()["sha"]
     except Exception as e:
         print(f"Error getting SHA: {e}")
-        pass
     
-    # Encode content
     encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
     
     data = {
@@ -55,7 +53,7 @@ def update_file(path: str, content: str, message: str) -> bool:
     
     try:
         response = httpx.put(url, headers=get_headers(), json=data, timeout=10)
-        print(f"Save stories response: {response.status_code} - {response.text}")
+        print(f"Save response: {response.status_code} - {response.text[:200]}")
         return response.status_code in (200, 201)
     except Exception as e:
         print(f"Error updating file: {e}")
@@ -63,25 +61,59 @@ def update_file(path: str, content: str, message: str) -> bool:
 
 
 def load_stories() -> list:
-    """Load stories from JSON file"""
+    """Load stories from TS file"""
     content = get_file_content(STORIES_FILE)
-    if content:
+    if not content:
+        return []
+    
+    match = re.search(r"export const stories: Story\[\] = (.*);", content, re.DOTALL)
+    if match:
+        json_str = match.group(1)
         try:
-            return json.loads(content)
-        except json.JSONDecodeError:
-            pass
+            return json.loads(json_str)
+        except json.JSONDecodeError as e:
+            print(f"JSON parse error: {e}")
     return []
 
 
 def save_stories(stories: list, message: str = "Add new story") -> bool:
-    """Save stories to JSON file"""
-    content = json.dumps(stories, ensure_ascii=False, indent=2)
-    return update_file(STORIES_FILE, content, message)
+    """Save stories to TS file"""
+    ts_content = """export interface Story {
+  id: string;
+  title: string;
+  date: string;
+  content: string;
+  catId: string;
+  image?: string;
+}
+
+export const stories: Story[] = """ + json.dumps(stories, ensure_ascii=False, indent=2) + ";"
+    
+    print(f"Saving {len(stories)} stories to {STORIES_FILE}")
+    return update_file(STORIES_FILE, ts_content, message)
+
+
+def add_story(title: str, content: str, cat_id: str, date: str = None, image: str = None) -> bool:
+    """Add new story"""
+    stories = load_stories()
+    
+    story = {
+        "id": f"story-{uuid.uuid4().hex[:8]}",
+        "title": title,
+        "date": date or "2024-01-01",
+        "content": content,
+        "catId": cat_id,
+    }
+    if image:
+        story["image"] = image
+    
+    stories.append(story)
+    
+    return save_stories(stories, f"Add story: {title}")
 
 
 def upload_image(image_data: bytes, filename: str) -> str | None:
     """Upload image to GitHub and return raw URL"""
-    # Generate unique filename
     ext = filename.rsplit(".", 1)[-1] if "." in filename else "jpg"
     unique_name = f"{uuid.uuid4().hex}.{ext}"
     path = f"{IMAGES_DIR}/{unique_name}"
@@ -96,7 +128,6 @@ def upload_image(image_data: bytes, filename: str) -> str | None:
     
     try:
         response = httpx.put(url, headers=get_headers(), json=data, timeout=30)
-        print(f"Upload image response: {response.status_code} - {response.text}")
         if response.status_code in (200, 201):
             return response.json()["content"]["download_url"]
     except Exception as e:

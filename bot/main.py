@@ -18,6 +18,7 @@ from github import (
     get_raw_asset_url,
     load_stories,
     save_stories,
+    add_story,
     upload_image,
 )
 
@@ -43,7 +44,7 @@ class StoryStates(StatesGroup):
 class StoryData:
     def __init__(self):
         self.title: str = ""
-        self.text: str = ""
+        self.content: str = ""
         self.photos: list[str] = []
         self.cat_id: str = ""
 
@@ -176,8 +177,8 @@ async def process_text(message: Message, state: FSMContext):
     if user_id not in story_data:
         return
     
-    text = message.text.strip()
-    story_data[user_id].text = text
+    content = message.text.strip()
+    story_data[user_id].content = content
     
     await state.set_state(StoryStates.waiting_for_photos)
     await message.answer(
@@ -239,7 +240,7 @@ async def select_cat(message: Message, state: FSMContext, user_id: int, cat_id: 
     cat_name = {"katya": "Катя", "gavrik": "Гаврик", "both": "Катя и Гаврик"}[cat_id]
     
     story = story_data[user_id]
-    text_preview = story.text[:100] + "..." if len(story.text) > 100 else story.text
+    content_preview = story.content[:100] + "..." if len(story.content) > 100 else story.content
     
     await state.set_state(StoryStates.waiting_for_confirm)
     await message.answer(
@@ -265,30 +266,13 @@ async def confirm_story(message: Message, state: FSMContext, user_id: int, confi
     
     story = story_data[user_id]
     
-    # Load existing stories
-    stories = load_stories()
-    
-    # Create new story
-    new_story = {
-        "id": f"story-{uuid.uuid4().hex[:8]}",
-        "catId": story.cat_id,
-        "title": story.title,
-        "text": story.text,
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "images": story.photos if story.photos else None,
-    }
-    
-    # Remove None values
-    if new_story["images"] is None:
-        del new_story["images"]
-    
-    # Add to stories (newest first)
-    stories.insert(0, new_story)
-    
-    # Save
-    success = save_stories(
-        stories, 
-        f"Add new story: {story.title}"
+    # Add story using github function (writes to stories.ts)
+    success = add_story(
+        title=story.title,
+        content=story.content,
+        cat_id=story.cat_id,
+        date=datetime.now().strftime("%Y-%m-%d"),
+        image=story.photos[0] if story.photos else None,
     )
     
     if success:
