@@ -67,7 +67,7 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
         print("No file found")
         return False
     
-# Create TS-formatted object
+    # Create TS-formatted object
     new_story = f'''  {{
     id: "story-{uuid.uuid4().hex[:8]}",
     title: "{title}",
@@ -78,10 +78,13 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
     
     print(f"New story: {new_story}")
     
-    # Replace ]; with ,\n{new_story}\n];
+    # Replace };]; with },\n{new_story}\n];
     current = current.rstrip()
-    if current.endswith("];"):
+    if current.endswith("};"):
+        # Remove }; and add },\n{new_story}\n];
         new_content = current[:-2] + ",\n" + new_story + "\n];"
+    elif current.endswith("];"):
+        new_content = current[:-2] + "\n" + new_story + "\n];"
     
     print(f"New content: {new_content[-200:]}")
     
