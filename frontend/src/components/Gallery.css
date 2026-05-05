@@ -3,6 +3,40 @@
   margin: 0 auto;
 }
 
+.gallery-years {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.gallery-year-tab {
+  background: rgba(255, 107, 53, 0.2);
+  border: 2px solid var(--color-orange);
+  color: var(--color-orange);
+  padding: 0.75rem 2rem;
+  font-size: 1.25rem;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.gallery-year-tab:hover {
+  background: rgba(255, 107, 53, 0.4);
+}
+
+.gallery-year-tab.active {
+  background: var(--color-orange);
+  color: white;
+}
+
+.gallery-empty {
+  text-align: center;
+  padding: 4rem;
+  color: #666;
+  font-size: 1.5rem;
+}
+
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));

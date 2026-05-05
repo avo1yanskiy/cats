@@ -1,27 +1,26 @@
 import { useState, useEffect } from 'react';
 import './Gallery.css';
-import { galleryPhotos } from '../data/galleryPhotos';
-
-const images = galleryPhotos.map((src, index) => ({
-  id: String(index + 1),
-  src,
-  alt: 'Катя и Гаврик'
-}));
+import { galleryPhotos, GalleryPhoto } from '../data/galleryPhotos';
 
 function Gallery() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(2025);
+
+  const years = [2025, 2026, 2027];
+
+  const filteredPhotos = galleryPhotos.filter((photo: GalleryPhoto) => photo.year === selectedYear);
 
   const openImage = (index: number) => setSelectedIndex(index);
   const closeModal = () => setSelectedIndex(null);
 
   const prevImage = () => {
     if (selectedIndex === null) return;
-    setSelectedIndex(selectedIndex === 0 ? images.length - 1 : selectedIndex - 1);
+    setSelectedIndex(selectedIndex === 0 ? filteredPhotos.length - 1 : selectedIndex - 1);
   };
 
   const nextImage = () => {
     if (selectedIndex === null) return;
-    setSelectedIndex(selectedIndex === images.length - 1 ? 0 : selectedIndex + 1);
+    setSelectedIndex(selectedIndex === filteredPhotos.length - 1 ? 0 : selectedIndex + 1);
   };
 
   useEffect(() => {
@@ -33,14 +32,39 @@ function Gallery() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIndex]);
+  }, [selectedIndex, filteredPhotos.length]);
+
+  if (filteredPhotos.length === 0) {
+    return (
+      <div className="gallery">
+        <div className="gallery-empty">
+          <p>Фото за {selectedYear} год появятся скоро!</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="gallery">
+      <div className="gallery-years">
+        {years.map((year) => (
+          <button
+            key={year}
+            className={`gallery-year-tab ${selectedYear === year ? 'active' : ''}`}
+            onClick={() => {
+              setSelectedYear(year);
+              setSelectedIndex(null);
+            }}
+          >
+            {year}
+          </button>
+        ))}
+      </div>
+
       <div className="gallery-grid">
-        {images.map((img, index) => (
-          <div key={img.id} className="gallery-item" onClick={() => openImage(index)}>
-            <img src={img.src} alt={img.alt} />
+        {filteredPhotos.map((photo: GalleryPhoto, index: number) => (
+          <div key={photo.id} className="gallery-item" onClick={() => openImage(index)}>
+            <img src={photo.src} alt={photo.alt} />
           </div>
         ))}
       </div>
@@ -50,9 +74,9 @@ function Gallery() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={closeModal}>✕</button>
             <button className="modal-prev" onClick={prevImage}>‹</button>
-            <img src={images[selectedIndex].src} alt={images[selectedIndex].alt} className="modal-image" />
+            <img src={filteredPhotos[selectedIndex].src} alt={filteredPhotos[selectedIndex].alt} className="modal-image" />
             <button className="modal-next" onClick={nextImage}>›</button>
-            <div className="modal-counter">{selectedIndex + 1} / {images.length}</div>
+            <div className="modal-counter">{selectedIndex + 1} / {filteredPhotos.length}</div>
           </div>
         </div>
       )}
