@@ -64,12 +64,14 @@ def load_stories() -> list:
     """Load stories from TS file"""
     content = get_file_content(STORIES_FILE)
     if not content:
-        print("No file content received")
+        print("No file content received - creating empty list")
         return []
     
     print(f"File content length: {len(content)}")
+    print(f"First 200 chars: {content[:200]}")
     
-    match = re.search(r"export const stories: Story\[\] = (.*);", content, re.DOTALL)
+    # More flexible regex to match the array
+    match = re.search(r"export const stories: Story\[\]\s*=\s*(\[.*?\]);", content, re.DOTALL)
     if match:
         json_str = match.group(1)
         print(f"Matched JSON: {json_str[:100]}...")
@@ -78,10 +80,7 @@ def load_stories() -> list:
         except json.JSONDecodeError as e:
             print(f"JSON parse error: {e}")
     else:
-        print("Regex didn't match - checking content...")
-        # Try to find the array manually
-        if "export const stories" in content:
-            print("Found 'export const stories' in content")
+        print("Regex didn't match content")
     return []
 
 
