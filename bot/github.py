@@ -59,16 +59,14 @@ def update_file(path: str, content: str, message: str) -> bool:
 
 
 def add_story(title: str, content: str, cat_id: str, date: str = None, image: str = None) -> bool:
-    """Add new story - simple approach: insert before ]; """
+    """Add new story - simple approach: replace ];  with ,\n{json}\n]; """
     print(f"=== ADD STORY: {title} ===")
     
-    # Read current file
     current = get_file_content(STORIES_FILE)
     if not current:
         print("No file found")
         return False
     
-    # Create new story - JSON with indent
     story_json = json.dumps({
         "id": f"story-{uuid.uuid4().hex[:8]}",
         "title": title,
@@ -77,17 +75,16 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
         "catId": cat_id,
     }, ensure_ascii=False, indent=2)
     
-    print(f"New story: {story_json}")
+    # Replace ];  with ,{story_json}\n];
+    # First remove trailing comma if exists, then add new
+    current = current.rstrip()
+    if current.endswith("];"):
+        # Add comma after last object, then new story
+        current = current[:-2] + ",\n" + story_json + "\n];"
     
-    # Find ];  and insert before it
-    # Pattern: replace ];  with ,\n  {story}\n];
-    old_ending = "];"
-    new_story_block = story_json + ","
-    new_content = current.replace("];", new_story_block + "];")
+    print(f"Content preview: {current[-300:]}")
     
-    print(f"Content preview: {new_content[-200:]}")
-    
-    return update_file(STORIES_FILE, new_content, f"Add story: {title}")
+    return update_file(STORIES_FILE, current, f"Add story: {title}")
 
 
 def load_stories() -> list:
