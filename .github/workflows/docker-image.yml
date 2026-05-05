@@ -186,8 +186,8 @@ jobs:
           script: |
             cd /opt/cat-site/
             docker volume create certbot-ssl 2>/dev/null || true
-            docker compose -f docker-compose.prod.yml down nginx || true
-            docker compose -f docker-compose.prod.yml up -d --build
+            docker compose -f docker-compose.prod.yml down || true
+            docker compose -f docker-compose.prod.yml up -d
             sleep 10
             docker logs cat-nginx --tail 5
             docker logs cat-bot --tail 10
