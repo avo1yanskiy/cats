@@ -1,8 +1,6 @@
 import base64
 import json
 import uuid
-from pathlib import Path
-import re
 
 import httpx
 from config import GITHUB_REPO, GITHUB_TOKEN, IMAGES_DIR, STORIES_FILE
@@ -53,72 +51,65 @@ def update_file(path: str, content: str, message: str) -> bool:
     
     try:
         response = httpx.put(url, headers=get_headers(), json=data, timeout=10)
-        print(f"Save response: {response.status_code} - {response.text[:200]}")
+        print(f"Save response: {response.status_code}")
         return response.status_code in (200, 201)
     except Exception as e:
         print(f"Error updating file: {e}")
         return False
 
 
+def add_story(title: str, content: str, cat_id: str, date: str = None, image: str = None) -> bool:
+    """Add new story - simple approach: insert before ]; """
+    print(f"=== ADD STORY: {title} ===")
+    
+    # Read current file
+    current = get_file_content(STORIES_FILE)
+    if not current:
+        print("No file found")
+        return False
+    
+    # Create new story - JSON with indent
+    story_json = json.dumps({
+        "id": f"story-{uuid.uuid4().hex[:8]}",
+        "title": title,
+        "date": date or "2024-01-01",
+        "content": content,
+        "catId": cat_id,
+    }, ensure_ascii=False, indent=2)
+    
+    print(f"New story: {story_json}")
+    
+    # Find ];  and insert before it
+    # Pattern: replace ];  with ,\n  {story}\n];
+    old_ending = "];"
+    new_story_block = story_json + ","
+    new_content = current.replace("];", new_story_block + "];")
+    
+    print(f"Content preview: {new_content[-200:]}")
+    
+    return update_file(STORIES_FILE, new_content, f"Add story: {title}")
+
+
 def load_stories() -> list:
-    """Load stories from TS file"""
+    """Load stories - for compatibility"""
     content = get_file_content(STORIES_FILE)
     if not content:
-        print("No file content received - creating empty list")
         return []
     
-    print(f"File content length: {len(content)}")
-    
-    # Find the array by counting brackets
-    start_idx = content.find("export const stories: Story[] =")
-    if start_idx == -1:
-        print("Could not find stories declaration")
-        return []
-    
-    print(f"Found declaration at: {start_idx}")
-    
-    # Find the opening [
-    arr_start = content.find("[", start_idx)
-    if arr_start == -1:
-        print("Could not find array opening [")
-        return []
-    
-    print(f"Found [ at: {arr_start}")
-    
-    # Count brackets to find matching ]
-    depth = 0
-    arr_end = 0
-    i = arr_start
-    while i < len(content):
-        if content[i] == "[":
-            depth += 1
-        elif content[i] == "]":
-            depth -= 1
-            if depth == 0:
-                arr_end = i + 1
-                break
-        i += 1
-    
-    if arr_end == 0:
-        print("Could not find array end")
-        return []
-    
-    json_str = content[arr_start:arr_end]
-    print(f"Extracted array length: {len(json_str)}")
-    print(f"Extracted: {json_str[:200]}...")
-    
-    try:
-        stories = json.loads(json_str)
-        print(f"Parsed {len(stories)} stories")
-        return stories
-    except json.JSONDecodeError as e:
-        print(f"JSON parse error: {e}")
-        return []
+    # Extract array
+    start = content.find("[")
+    end = content.rfind("]")
+    if start != -1 and end != -1:
+        try:
+            return json.loads(content[start:end+1])
+        except Exception as e:
+            print(f"Parse error: {e}")
+    return []
 
 
-def save_stories(stories: list, message: str = "Add new story") -> bool:
-    """Save stories to TS file"""
-    ts_content = """export interface Story {
+def save_stories(stories: list, message: str) -> bool:
+    """Save stories - full rewrite"""
+    content = """export interface Story {
   id: string;
   title: string;
   date: string;
@@ -129,44 +120,11 @@ def save_stories(stories: list, message: str = "Add new story") -> bool:
 
 export const stories: Story[] = """ + json.dumps(stories, ensure_ascii=False, indent=2) + ";"
     
-    print(f"Saving {len(stories)} stories to {STORIES_FILE}")
-    print(f"Stories to save: {json.dumps(stories, ensure_ascii=False, indent=2)}")
-    
-    return update_file(STORIES_FILE, ts_content, message)
-
-
-def add_story(title: str, content: str, cat_id: str, date: str = None, image: str = None) -> bool:
-    """Add new story"""
-    print(f"=== ADD STORY START ===")
-    print(f"Title: {title}")
-    
-    stories = load_stories()
-    print(f"After load_stories: {len(stories)} stories")
-    
-    story = {
-        "id": f"story-{uuid.uuid4().hex[:8]}",
-        "title": title,
-        "date": date or "2024-01-01",
-        "content": content,
-        "catId": cat_id,
-    }
-    if image:
-        story["image"] = image
-    
-    print(f"New story: {story}")
-    
-    stories.append(story)
-    print(f"After append: {len(stories)} stories")
-    
-    result = save_stories(stories, f"Add story: {title}")
-    print(f"Save result: {result}")
-    print(f"=== ADD STORY END ===")
-    
-    return result
+    return update_file(STORIES_FILE, content, message)
 
 
 def upload_image(image_data: bytes, filename: str) -> str | None:
-    """Upload image to GitHub and return raw URL"""
+    """Upload image to GitHub"""
     ext = filename.rsplit(".", 1)[-1] if "." in filename else "jpg"
     unique_name = f"{uuid.uuid4().hex}.{ext}"
     path = f"{IMAGES_DIR}/{unique_name}"
