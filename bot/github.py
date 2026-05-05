@@ -81,8 +81,16 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
     # Add new story to TS file
     current = current.rstrip()
     
-    # Replace ]; with ,\n{new_story}\n];
-    new_content = current.replace("];", ",\n" + new_story + "\n];")
+    # Remove ]; from end
+    if current.endswith("];"):
+        current = current[:-2]
+    
+    # If last story ends with }, - remove the comma
+    if current.endswith("},"):
+        current = current[:-1]
+    
+    # Add new story and close array
+    new_content = current + "\n  " + new_story + "\n];"
     
     print(f"New content: {new_content[-200:]}")
     
