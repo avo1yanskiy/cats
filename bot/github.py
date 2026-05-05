@@ -58,6 +58,11 @@ def update_file(path: str, content: str, message: str) -> bool:
         return False
 
 
+def escape_ts_string(s: str) -> str:
+    """Escape string for TypeScript"""
+    return s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r')
+
+
 def add_story(title: str, content: str, cat_id: str, date: str = None, image: str = None) -> bool:
     """Add new story to TS file"""
     print(f"=== ADD STORY: {title} ===")
@@ -70,9 +75,9 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
     # Create TS-formatted object
     new_story = f'''  {{
     id: "story-{uuid.uuid4().hex[:8]}",
-    title: "{title}",
+    title: "{escape_ts_string(title)}",
     date: "{date or "2024-01-01"}",
-    content: "{content}",
+    content: "{escape_ts_string(content)}",
     catId: "{cat_id}",
   }}'''
     
