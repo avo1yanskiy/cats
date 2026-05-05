@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import './Gallery.css';
-import { galleryPhotos, GalleryPhoto } from '../data/galleryPhotos';
+import { galleryPhotos } from '../data/galleryPhotos';
+
+interface GalleryPhoto {
+  id: string;
+  src: string;
+  alt: string;
+  year: number;
+}
 
 function Gallery() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);

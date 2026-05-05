@@ -3,6 +3,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app/frontend
 
 COPY frontend/ ./
+COPY assets/images ./public/images
+COPY assets/videos ./public/video-files
 RUN npm install
 RUN npm run build
 
