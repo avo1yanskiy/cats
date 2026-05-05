@@ -59,7 +59,7 @@ def update_file(path: str, content: str, message: str) -> bool:
 
 
 def add_story(title: str, content: str, cat_id: str, date: str = None, image: str = None) -> bool:
-    """Add new story - replace ];  with ,\n{json}\n]; """
+    """Add new story to TS file"""
     print(f"=== ADD STORY: {title} ===")
     
     current = get_file_content(STORIES_FILE)
@@ -67,27 +67,23 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
         print("No file found")
         return False
     
-    print(f"Current content length: {len(current)}")
+    # Create TS-formatted object
+    new_story = f'''  {{
+    id: "story-{uuid.uuid4().hex[:8]}",
+    title: "{title}",
+    date: "{date or "2024-01-01"}",
+    content: "{content}",
+    catId: "{coord_id}",
+  }}'''
     
-    # Create properly formatted JSON for TS
-    story_json = json.dumps({
-        "id": "story-" + uuid.uuid4().hex[:8],
-        "title": title,
-        "date": date or "2024-01-01",
-        "content": content,
-        "catId": cat_id,
-    }, ensure_ascii=False, indent=2)
+    print(f"New story: {new_story}")
     
-    print(f"New story JSON: {story_json}")
-    
-    # Replace ];  with ,{story_json}\n];
-    # Remove };  and add with proper formatting
+    # Replace ]; with ,\n{new_story}\n];
     current = current.rstrip()
     if current.endswith("];"):
-        # Insert comma + new story + ];
-        new_content = current[:-2] + ",\n  " + story_json.replace("\n", "\n  ") + "\n];"
+        new_content = current[:-2] + ",\n" + new_story + "\n];"
     
-    print(f"New content end: {new_content[-200:]}")
+    print(f"New content: {new_content[-200:]}")
     
     return update_file(STORIES_FILE, new_content, f"Add story: {title}")
 
