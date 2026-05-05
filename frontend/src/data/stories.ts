@@ -30,4 +30,12 @@ export const stories: Story[] = [
     content: "Лвлв54545татвт",
     catId: "gavrik",
   },
+,
+{
+  "id": "story-44bf46be",
+  "title": "Твовлвкате",
+  "date": "2026-05-05",
+  "content": "Лвовлаталкт",
+  "catId": "katya"
+}
 ];
