@@ -9,6 +9,7 @@ nginx (ports 80, 443)  ← Reverse Proxy
     ↓ HTTP/HTTPS
 cat-site (port 80)     ← React app (внутренний контейнер)
 certbot                ← Автообновление SSL-сертификатов
+bot                   ← Telegram бот для историй
 ```
 
 ## Запуск
@@ -19,7 +20,7 @@ certbot                ← Автообновление SSL-сертификат
 docker compose -f docker-compose.local.yml up -d --build
 ```
 
-Открой http://localhost:80
+Открой http://localhost:3000
 
 ### Продакшен (сервер)
 
@@ -29,6 +30,15 @@ docker compose -f docker-compose.yml up -d --build
 
 Открой http://purr-tales.ru и https://purr-tales.ru
 
+## Разделы сайта
+
+| Раздел | URL | Описание |
+|--------|-----|---------|
+| Главная | / | Катя и Гаврик |
+| Галерея | /gallery | Фото по годам (2025, 2026, 2027) |
+| Видео | /videos | Видео по годам |
+| Истории | /stories | Истории по котам (Катя, Гаврик, Оба) |
+
 ## Сервисы
 
 | Сервис | Порт | Описание |
@@ -36,6 +46,7 @@ docker compose -f docker-compose.yml up -d --build
 | nginx | 80, 443 | Reverse Proxy с SSL |
 | cat-site | 80 (internal) | React-приложение |
 | certbot | - | Автообновление SSL |
+| bot | - | Telegram бот для добавления историй |
 
 ## Команды управления
 
@@ -52,27 +63,25 @@ docker compose -f docker-compose.local.yml down
 docker compose -f docker-compose.local.yml restart
 
 # Логи
-docker logs cat-nginx
-docker logs cat-site
-docker logs certbot
+docker compose logs nginx
+docker compose logs cat-site
 ```
 
 ### Команды на сервере
 
 ```bash
 # Запуск
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.yml up -d --build
 
 # Остановка
-docker compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.yml down
 
-# Перезапуск nginx
-docker restart cat-nginx
+# Перезапуск
+docker compose restart
 
 # Логи
-docker logs cat-nginx --tail 20
-docker logs cat-site --tail 20
-docker logs certbot
+docker compose logs nginx --tail 20
+docker compose logs cat-site --tail 20
 ```
 
 ## SSL-сертификаты
@@ -91,72 +100,77 @@ docker logs certbot
 docker compose run --rm certbot renew
 ```
 
-### Автообновление через cron (опционально)
-
-```bash
-# Открыть crontab
-crontab -e
-
-# Добавить строку (каждый день в 3 ночи)
-0 3 * * * cd /opt/cat-site && docker compose run --rm certbot renew >> /var/log/certbot-renew.log 2>&1
-```
-
 ## Как добавить фото в галерею
 
-1. Положи фотографии (`.webp`) в папку `assets/images/`
-2. Открой файл `frontend/src/data/galleryPhotos.ts`
-3. Добавь пути к новым файлам:
-   ```ts
-   export const galleryByYear: Record<string, string[]> = {
-     '2025': [
-       `${BASE_URL}/новое-фото.webp`,
-     ],
-   };
-   ```
-4. Пересобери проект:
-   ```bash
-   docker compose -f docker-compose.local.yml up -d --build
-   ```
+1. Положи фотографии (`.webp`, `.jpg`) в папку `assets/images/`
+2. Пересобери проект — данные генерируются автоматически
 
-> **Важно:** Имена файлов чувствительны к регистру. Не используй пробелы и кириллицу.
+```bash
+docker compose up -d --build cat-site
+```
+
+Фото автоматически группируются по годам (2025, 2026, 2027).
 
 ## Как добавить видео
 
 1. Конвертируй видео в формат **MP4 (H.264 + AAC)**. Формат H.265 не поддерживается.
 2. Положи файл `.mp4` в папку `assets/videos/`
-3. Открой файл `frontend/src/data/videos.ts`
-4. Добавь новое видео:
-   ```ts
-   {
-     id: 'video-4',
-     title: 'Название видео',
-     description: 'Описание',
-     thumbnail: 'url-превью',
-     videoUrl: 'url-видео',
-   },
-   ```
-5. Пересобери проект
+3. Пересобери проект:
+
+```bash
+docker compose up -d --build cat-site
+```
 
 ## Как редактировать истории
 
 1. Открой файл `frontend/src/data/stories.ts`
-2. Каждая история:
-   ```ts
-   {
-     id: 'story-1',
-     catId: 'katya', // 'katya', 'gavrik' или 'both'
-     title: 'Заголовок',
-     text: 'Текст истории...',
-     date: '2024-01-01',
-     images: ['url1', 'url2'], // опционально
-   }
-   ```
-3. Пересобери проект
+2. Отредактируй историю:
+
+```ts
+{
+  id: 'story-factory',
+  title: 'Как мы прижились у нас дома',
+  date: '2024-05-01',
+  content: 'Текст истории...',
+  catId: 'both', // 'katya', 'gavrik' или 'both'
+},
+```
+
+3. Пересобери проект:
+
+```bash
+docker compose up -d --build cat-site
+```
 
 Где отображается:
 - `catId: 'katya'` — в разделе "Катя"
 - `catId: 'gavrik'` — в разделе "Гаврик"
-- `catId: 'both'` — в разделе "Как мы прижились"
+- `catId: 'both'` — в разделе "Оба"
+
+## Telegram бот для историй
+
+Бот позволяет добавлять истории через Telegram.
+
+### Запуск бота
+
+```bash
+docker compose up -d bot
+```
+
+### Команды бота
+
+- `/start` — Приветствие
+- `/newstory` — Добавить новую историю
+- `/help` — Справка
+- `/cancel` — Отмена
+
+### Настройка переменных окружения
+
+```bash
+TELEGRAM_BOT_TOKEN=your_token
+TOKEN_BOT=your_github_token
+REPO_BOT=avo1yanskiy/cats
+```
 
 ## Структура файлов
 
@@ -171,10 +185,27 @@ cats/
 ├── frontend/               # React-приложение
 │   ├── src/
 │   │   ├── components/    # React компоненты
-│   │   ├── data/          # Данные (фото, видео, истории)
+│   │   │   ├── Gallery.tsx
+│   │   │   ├── StoryCard.tsx
+│   │   │   └── ...
+│   │   ├── data/          # Данные
+│   │   │   ├── stories.ts
+│   │   │   ├── videos.ts
+│   │   │   └── galleryPhotos.ts
 │   │   └── pages/         # Страницы
+│   │       ├── GalleryPage.tsx
+│   │       ├── VideoPage.tsx
+│   │       └── StoriesPage.tsx
 │   └── public/            # Публичные файлы
-├── assets/                 # Медиа файлы (фото, видео)
+├── assets/                 # Медиа файлы
+│   ├── images/            # Фото для галереи
+│   └── videos/            # Видео
+├── bot/                   # Telegram бот
+│   ├── main.py
+│   ├── config.py
+│   ├── github.py
+│   ├── requirements.txt
+│   └── Dockerfile
 └── README.md
 ```
 
@@ -187,11 +218,12 @@ cats/
 
 Настройки в `.github/workflows/docker-image.yml`:
 - `DOCKER_USERNAME` / `DOCKER_PASSWORD` — Docker Hub
+- `TELEGRAM_BOT_TOKEN` / `TOKEN_BOT` / `REPO_BOT` — Secrets для бота
 - `SERVER_HOST` / `SERVER_USER` / `SERVER_SSH_KEY` — сервер
 
 ## DNS
 
-Домены направлены на `132.243.226.131`
+Домены направлены на сервер с nginx.
 
 ## Решение проблем
 
@@ -199,9 +231,9 @@ cats/
 
 Проверить статус контейнеров:
 ```bash
-docker ps
-docker logs cat-nginx
-docker logs cat-site
+docker compose ps
+docker compose logs nginx
+docker compose logs cat-site
 ```
 
 Проверить связь между контейнерами:
@@ -211,30 +243,31 @@ curl http://cat-site:80
 
 Перезапустить:
 ```bash
-docker compose -f docker-compose.prod.yml restart
+docker compose restart
 ```
 
 ### Nginx не стартует
 
 Проверить конфигурацию:
 ```bash
-docker exec cat-nginx nginx -t
+docker compose exec nginx nginx -t
 ```
 
-Перезапустить:
+### Бот не работает
+
+Проверить логи:
 ```bash
-docker restart cat-nginx
+docker compose logs bot
 ```
 
-### Certbot ошибка "/var/www/certbot does not exist"
-
-Убедиться что volume примонтирован:
+Проверить токен:
 ```bash
-docker volume ls | grep certbot
+docker compose exec bot curl https://api.telegram.org
 ```
 
 ## История изменений
 
+- **v3.0** — Новый дизайн с табами (годы для галереи/видео, коты для историй)
 - **v2.0** — Reverse Proxy архитектура с nginx и certbot
 - **v1.0** — Базовая версия с nginx внутри
 
