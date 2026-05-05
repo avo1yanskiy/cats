@@ -247,7 +247,7 @@ async def select_cat(message: Message, state: FSMContext, user_id: int, cat_id: 
         f"📋 Проверь историю:\n\n"
         f"🏷 Название: {story.title}\n"
         f"🐱 Кот: {cat_name}\n"
-        f"📄 Текст: {text_preview}\n"
+        f"📄 Текст: {content_preview}\n"
         f"📸 Фото: {len(story.photos)} шт.\n\n"
         f"Опубликовать?",
         reply_markup=get_confirm_keyboard(),
