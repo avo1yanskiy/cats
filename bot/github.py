@@ -67,13 +67,13 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
         print("No file found")
         return False
     
-    # Create TS-formatted object
+# Create TS-formatted object
     new_story = f'''  {{
     id: "story-{uuid.uuid4().hex[:8]}",
     title: "{title}",
     date: "{date or "2024-01-01"}",
     content: "{content}",
-    catId: "{coord_id}",
+    catId: "{cat_id}",
   }}'''
     
     print(f"New story: {new_story}")
