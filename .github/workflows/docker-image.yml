@@ -2,7 +2,7 @@ name: Build and Deploy Cat Site
 
 on:
   push:
-    branches: ["main", "master", "dev"]
+    branches: ["main", "master"]
 
 env:
   DOCKER_IMAGE_NAME: cat-site
@@ -31,7 +31,6 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
             ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
 
       - name: Build and push bot Docker image
@@ -41,13 +40,12 @@ jobs:
           file: ./bot/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/cat-bot:latest
             ${{ secrets.DOCKER_USERNAME }}/cat-bot:${{ github.sha }}
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout code
@@ -186,7 +184,4 @@ jobs:
             docker volume create certbot-ssl 2>/dev/null || true
             docker compose -f docker-compose.prod.yml down || true
             docker compose -f docker-compose.prod.yml up -d
-            sleep 10
-            docker logs cat-nginx --tail 5
-            docker logs cat-bot --tail 10
             echo "✅ Done!"
