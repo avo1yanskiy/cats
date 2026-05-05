@@ -78,17 +78,17 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
     
     print(f"New story: {new_story}")
     
-    # Replace };]; with },\n{new_story}\n];
+    # Replace };]; with }\n{new_story}\n];
     current = current.rstrip()
     if current.endswith("};"):
-        # File ends with }, - replace with },{new_story};
-        new_content = current[:-2] + ",\n" + new_story + "\n];"
+        # File ends with }, - just add new story without extra comma
+        new_content = current[:-2] + "\n" + new_story + "\n];"
     elif current.endswith("]:"):
         # Empty array
         new_content = current + new_story.replace("  ", "  ") + "\n];"
     else:
-        # Fallback
-        new_content = current[:-2] + ",\n" + new_story + "\n];"
+        # Fallback - add with newline
+        new_content = current[:-2] + "\n" + new_story + "\n];"
     
     print(f"New content: {new_content[-200:]}")
     
