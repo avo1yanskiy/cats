@@ -81,10 +81,14 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
     # Replace };]; with },\n{new_story}\n];
     current = current.rstrip()
     if current.endswith("};"):
-        # Remove }; and add },\n{new_story}\n];
+        # File ends with }, - replace with },{new_story};
         new_content = current[:-2] + ",\n" + new_story + "\n];"
-    elif current.endswith("];"):
-        new_content = current[:-2] + "\n" + new_story + "\n];"
+    elif current.endswith("]:"):
+        # Empty array
+        new_content = current + new_story.replace("  ", "  ") + "\n];"
+    else:
+        # Fallback
+        new_content = current[:-2] + ",\n" + new_story + "\n];"
     
     print(f"New content: {new_content[-200:]}")
     
