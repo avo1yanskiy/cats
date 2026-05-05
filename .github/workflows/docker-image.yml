@@ -143,8 +143,6 @@ jobs:
                 - TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
                 - TOKEN_BOT=${{ secrets.TOKEN_BOT }}
                 - REPO_BOT=${{ secrets.REPO_BOT }}
-              networks:
-                - cat-network
 
           networks:
             cat-network:
