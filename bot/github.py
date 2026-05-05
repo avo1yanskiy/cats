@@ -96,6 +96,7 @@ export const stories: Story[] = """ + json.dumps(stories, ensure_ascii=False, in
 def add_story(title: str, content: str, cat_id: str, date: str = None, image: str = None) -> bool:
     """Add new story"""
     stories = load_stories()
+    print(f"Loaded {len(stories)} stories from GitHub")
     
     story = {
         "id": f"story-{uuid.uuid4().hex[:8]}",
@@ -108,6 +109,7 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
         story["image"] = image
     
     stories.append(story)
+    print(f"Added new story, total: {len(stories)}")
     
     return save_stories(stories, f"Add story: {title}")
 
