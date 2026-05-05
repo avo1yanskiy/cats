@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import StoryCard from '../components/StoryCard';
 import { stories } from '../data/stories';
+import './StoriesPage.css';
 
 function StoriesPage() {
   const [selectedCat, setSelectedCat] = useState<string>('both');
