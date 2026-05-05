@@ -1,14 +1,15 @@
 .story-card {
   padding: 2rem;
-  background-color: var(--color-surface);
-  border-radius: 12px;
-  border-left: 3px solid var(--color-orange);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 107, 53, 0.2);
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .story-card:hover {
-  transform: translateX(10px);
-  box-shadow: 0 0 30px rgba(255, 107, 53, 0.1);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(255, 107, 53, 0.25);
+  border-color: rgba(255, 107, 53, 0.5);
 }
 
 .story-content {
@@ -26,46 +27,53 @@
 }
 
 .story-title {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.4rem;
+  font-weight: 700;
   margin: 0;
-  color: var(--color-text);
+  color: var(--color-orange);
 }
 
 .story-cat {
-  background-color: var(--color-orange);
-  color: var(--color-bg);
-  padding: 0.25rem 0.75rem;
+  background: rgba(255, 107, 53, 0.2);
+  color: var(--color-orange);
+  padding: 0.4rem 1rem;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .story-date {
-  color: var(--color-text-muted);
-  font-size: 0.75rem;
+  color: #888;
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
 .story-text {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #aaa;
+}
+
+.story-image {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
 }
 
 @media (max-width: 768px) {
   .story-card {
     padding: 1.5rem;
+    border-radius: 12px;
   }
 
   .story-title {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 
   .story-text {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
 }
