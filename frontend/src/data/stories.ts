@@ -23,4 +23,12 @@ export const stories: Story[] = [
     content: "Воо о о Витас",
     catId: "katya",
   }
+
+    {
+    id: "story-cc6e448c",
+    title: "Тест2",
+    date: "2026-05-05",
+    content: "Тест2",
+    catId: "katya",
+  }
 ];
