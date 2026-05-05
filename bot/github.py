@@ -78,17 +78,17 @@ def add_story(title: str, content: str, cat_id: str, date: str = None, image: st
     
     print(f"New story: {new_story}")
     
-    # Replace };]; with }\n{new_story}\n];
+    # Add new story to TS file
     current = current.rstrip()
     if current.endswith("};"):
-        # File ends with }, - just add new story without extra comma
-        new_content = current[:-2] + "\n" + new_story + "\n];"
+        # Has existing stories (ends with },) - add comma then new story
+        new_content = current[:-2] + ",\n" + new_story + "\n];"
     elif current.endswith("]:"):
-        # Empty array
-        new_content = current + new_story.replace("  ", "  ") + "\n];"
+        # Empty array - no comma needed
+        new_content = current + new_story + "\n];"
     else:
-        # Fallback - add with newline
-        new_content = current[:-2] + "\n" + new_story + "\n];"
+        # Fallback
+        new_content = current[:-2] + ",\n" + new_story + "\n];"
     
     print(f"New content: {new_content[-200:]}")
     
