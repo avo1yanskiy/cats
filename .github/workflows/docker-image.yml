@@ -114,7 +114,7 @@ jobs:
                 - cat-network
             
             cat-site:
-              image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
+              image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
               container_name: cat-site
               expose:
                 - "80"
@@ -135,7 +135,7 @@ jobs:
                 - cat-network
             
             bot:
-              image: ${{ secrets.DOCKER_USERNAME }}/cat-bot:latest
+              image: ${{ secrets.DOCKER_USERNAME }}/cat-bot:${{ github.sha }}
               container_name: cat-bot
               restart: always
               environment:
