@@ -14,6 +14,6 @@ COPY --from=builder /app/frontend/dist ./dist
 COPY --from=builder /app/frontend/node_modules ./node_modules
 COPY frontend/package.json ./
 
-EXPOSE 3000
+EXPOSE 80
 
-CMD ["npx", "serve", "-s", "dist", "-l", "3000"]
+CMD ["npx", "serve", "-s", "dist", "-l", "80"]
