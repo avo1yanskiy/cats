@@ -10,20 +10,20 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      
+
       - name: Build and push cat-site Docker image
         uses: docker/build-push-action@v5
         with:
@@ -48,11 +48,11 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Create nginx.conf file for server
         run: |
           cat > nginx.conf << 'EOF'
@@ -60,27 +60,27 @@ jobs:
           server {
               listen 80;
               server_name purr-tales.ru;
-              
+
               location /.well-known/acme-challenge/ {
                   proxy_pass http://cat-site:80;
               }
-              
+
               location / {
                   return 301 https://$host$request_uri;
               }
           }
-          
+
           # HTTPS
           server {
               listen 443 ssl http2;
               server_name purr-tales.ru;
-              
+
               ssl_certificate /etc/letsencrypt/live/purr-tales.ru/fullchain.pem;
               ssl_certificate_key /etc/letsencrypt/live/purr-tales.ru/privkey.pem;
-              
+
               ssl_protocols TLSv1.2 TLSv1.3;
               ssl_prefer_server_ciphers on;
-              
+
               location / {
                   proxy_pass http://cat-site:80;
                   proxy_set_header Host $host;
@@ -95,7 +95,7 @@ jobs:
         run: |
           cat > docker-compose.prod.yml << EOF
           version: '3.8'
-          
+
           services:
             nginx:
               image: nginx:alpine
@@ -112,7 +112,7 @@ jobs:
                 - cat-site
               networks:
                 - cat-network
-            
+
             cat-site:
               image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
               container_name: cat-site
@@ -121,7 +121,7 @@ jobs:
               restart: unless-stopped
               networks:
                 - cat-network
-            
+
             certbot:
               image: certbot/certbot
               container_name: cat-certbot
@@ -133,22 +133,23 @@ jobs:
               restart: on-failure
               networks:
                 - cat-network
-            
+
             bot:
               image: ${{ secrets.DOCKER_USERNAME }}/cat-bot:${{ github.sha }}
               container_name: cat-bot
               restart: always
+              network_mode: host
               environment:
                 - TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
                 - TOKEN_BOT=${{ secrets.TOKEN_BOT }}
                 - REPO_BOT=${{ secrets.REPO_BOT }}
               networks:
                 - cat-network
-          
+
           networks:
             cat-network:
               driver: bridge
-          
+
           volumes:
             certbot-ssl:
             certbot-challenge:
