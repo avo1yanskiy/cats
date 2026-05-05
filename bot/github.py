@@ -68,20 +68,41 @@ def load_stories() -> list:
         return []
     
     print(f"File content length: {len(content)}")
-    print(f"First 200 chars: {content[:200]}")
     
-    # More flexible regex to match the array
-    match = re.search(r"export const stories: Story\[\]\s*=\s*(\[.*?\]);", content, re.DOTALL)
-    if match:
-        json_str = match.group(1)
-        print(f"Matched JSON: {json_str[:100]}...")
-        try:
-            return json.loads(json_str)
-        except json.JSONDecodeError as e:
-            print(f"JSON parse error: {e}")
-    else:
-        print("Regex didn't match content")
-    return []
+    # Find the array by counting brackets
+    start_idx = content.find("export const stories: Story[] =")
+    if start_idx == -1:
+        print("Could not find stories declaration")
+        return []
+    
+    # Find the opening [
+    arr_start = content.find("[", start_idx)
+    if arr_start == -1:
+        print("Could not find array opening [")
+        return []
+    
+    # Count brackets to find matching ]
+    depth = 0
+    arr_content = []
+    i = arr_start
+    while i < len(content):
+        if content[i] == "[":
+            depth += 1
+        elif content[i] == "]":
+            depth -= 1
+            if depth == 0:
+                arr_end = i + 1
+                break
+        i += 1
+    
+    json_str = content[arr_start:arr_end]
+    print(f"Extracted array: {json_str[:100]}...")
+    
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError as e:
+        print(f"JSON parse error: {e}")
+        return []
 
 
 def save_stories(stories: list, message: str = "Add new story") -> bool:
